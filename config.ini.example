@@ -1,0 +1,81 @@
+[GLOBAL]
+
+debug = on
+
+server = main
+app = main
+
+# 
+# Server
+#
+
+[server:main]
+
+host = 127.0.100.3
+port = 5000
+
+#
+# Application
+#
+
+[app:main]
+
+data_dir = /tmp/helloworld/
+
+beaker.session.type = file
+beaker.session.data_dir = %(data_dir)s/session/
+beaker.session.key = helloworld
+beaker.session.secret = dJkUgAajzrRiD8hrNbdcnQ==
+beaker.session.timeout = 3600
+
+beaker.cache.type = file
+beaker.cache.data_dir = %(data_dir)s/cache/
+beaker.cache.lock_dir = %(data_dir)s/cache/locks
+
+who = %(here)s/who.ini
+
+
+#
+# Logging
+#
+
+[loggers]
+keys = root, routes, accredit, sqlalchemy
+
+[handlers]
+keys = console
+
+[formatters]
+keys = generic
+
+[logger_root]
+level = INFO
+handlers = console
+
+[logger_routes]
+level = WARN
+handlers =
+qualname = routes.middleware
+
+[logger_accredit]
+level = DEBUG
+handlers =
+qualname = accredit
+
+[logger_sqlalchemy]
+level = WARN
+handlers =
+qualname = sqlalchemy.engine
+# INFO: logs SQL queries.
+# DEBUG: logs SQL queries and results.
+
+[handler_console]
+class = StreamHandler
+args = (sys.stderr,)
+level = DEBUG
+formatter = generic
+
+[formatter_generic]
+#format = %(asctime)s,%(msecs)03d %(levelname)-5.5s [%(name)s] [%(threadName)s] %(message)s
+format = %(levelname)-7.7s [%(name)s] [%(threadName)s] %(message)s
+datefmt = %H:%M:%S
