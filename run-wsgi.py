@@ -34,7 +34,7 @@ config_from_file(config_file)
 
 # Load and serve WSGI application
 
-from helloworld.wsgi_app import app
+from helloworld.app import app
 
 # Serve
 

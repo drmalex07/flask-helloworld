@@ -1,14 +1,24 @@
 #!/usr/bin/env python
 
 import json
-from flask import Flask, url_for, request, make_response
+import flask
+import urllib
+import logging
+from urllib import urlencode
+from flask import url_for, request, make_response, redirect
+from flask import render_template
 from beaker.middleware import SessionMiddleware
+
 
 from helloworld import config
 
-app = Flask(__name__)
+app = flask.Flask(__name__)
 
+log = logging.getLogger(__name__)
+
+#
 # Setup application routes
+#
 
 @app.route('/')
 def index():
@@ -23,7 +33,7 @@ def index():
 @app.route('/environ')
 def print_environ():
     environ_dump = json.dumps({
-        k: repr(request.environ[k]) for k in sorted(request.environ)
+        k: str(v) for k, v in request.environ.items()
     })
     resp = make_response(environ_dump, 200)
     resp.headers['content-type'] = 'application/json; charset=utf-8'
@@ -32,11 +42,13 @@ def print_environ():
 @app.route('/hello')
 @app.route('/hello/<name>')
 def hello(name='nobody'):
-    return 'Hello %s' % (name)
+    log.info('Rendering template hello.html')
+    return render_template('hello.html', name=name)
 
+#
 # Setup middleware
+#
 
 app_config = config['app']
 
 app.wsgi_app = SessionMiddleware(app.wsgi_app, app_config)
-
