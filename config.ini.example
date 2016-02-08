@@ -1,16 +1,18 @@
-[GLOBAL]
+[DEFAULT]
 
 debug = on
-
-server = main
-app = main
 
 # 
 # Server
 #
 
 [server:main]
+use = native
 
+[server:native]
+
+use = egg:helloworld#native
+debug = on
 host = 127.0.100.3
 port = 5000
 
@@ -19,6 +21,8 @@ port = 5000
 #
 
 [app:main]
+
+use = egg:helloworld#main
 
 data_dir = /tmp/helloworld/
 

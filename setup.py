@@ -13,8 +13,17 @@ setup(
         'jinja2',
         'flask',
         'beaker',
+        'pastedeploy'
     ],
     setup_requires=[
     ],
+    entry_points = {
+        'paste.app_factory': [
+            'main=helloworld.app:make_app',
+        ],
+        'paste.server_factory': [
+            'native=helloworld.app:make_server',
+        ],
+    },
     zip_safe=False)
 
