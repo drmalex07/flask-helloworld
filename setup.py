@@ -13,6 +13,8 @@ setup(
         'jinja2',
         'flask',
         'beaker',
+        'repoze.who',
+        'repoze.who-friendlyform',
     ],
     setup_requires=[
     ],

@@ -40,7 +40,7 @@ from helloworld import config, config_from_file
 
 config_from_file(config_file)
 
-from helloworld.wsgi_app import app
+from helloworld.app import app
 
 # Dispatch request to testing application
 
