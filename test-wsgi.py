@@ -13,6 +13,7 @@ argp.add_argument("path", metavar='PATH', type=str, nargs='?', default='/')
 argp.add_argument("-c", "--config", dest='config_file', 
     default=os.path.join(here, 'config.ini'))
 argp.add_argument("-e", "--pyenv", dest='pyenv_dir')
+argp.add_argument("-n", "--app-name", dest='app_name', default='main')
 argp.add_argument("-u", "--user", dest='remote_user', type=str);
 argp.add_argument("-x", "--method", dest='method', type=str, 
     default='GET', choices=['GET', 'POST']);
@@ -40,7 +41,7 @@ import webtest
 
 # Load WSGI application
 
-app = paste.deploy.loadapp('config:%s' %(config_file))
+app = paste.deploy.loadapp('config:%s#%s' %(config_file, args.app_name))
 
 # Dispatch request to testing application
 
