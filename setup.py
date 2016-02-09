@@ -13,8 +13,8 @@ setup(
         'jinja2',
         'flask',
         'beaker',
-        'pastedeploy',
-        'repoze.who',
+        'paste',
+        'repoze.who<2.0',
         'repoze.who-friendlyform',
     ],
     setup_requires=[
