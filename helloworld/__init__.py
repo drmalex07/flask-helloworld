@@ -10,7 +10,7 @@ def config_from_file(path):
     })
     parser.read(path)
 
-    config.update(dict(parser.items('GLOBAL')))
+    config.update(dict(parser.items('DEFAULT')))
     
     app_name = config.get('app', 'main')
     config['app'] = dict(parser.items('app:%s' % (app_name)))

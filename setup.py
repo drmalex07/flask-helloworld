@@ -13,8 +13,9 @@ setup(
         'jinja2',
         'flask',
         'beaker',
-        'repoze.who',
+        'repoze.who<1.1',
         'repoze.who-friendlyform',
+        'webtest',
     ],
     setup_requires=[
     ],
