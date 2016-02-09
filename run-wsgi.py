@@ -10,10 +10,11 @@ argp = argparse.ArgumentParser()
 argp.add_argument("-c", "--config", dest='config_file', 
     default=os.path.join(here, 'config.ini'))
 argp.add_argument("-e", "--pyenv", dest='pyenv_dir')
+argp.add_argument("-n", "--app-name", dest='app_name', default='main')
+argp.add_argument("-s", "--server-name", dest='server_name', default='main')
 args = argp.parse_args()
 
-config_file = args.config_file
-config_uri = 'config:%s' %(config_file)
+config_file = os.path.realpath(args.config_file)
 
 # Activate enviroment if needed
 
@@ -32,10 +33,12 @@ logging.config.fileConfig(config_file)
 
 # Load application
 
+config_uri = 'config:%s#%s' %(config_file, args.app_name)
 app = paste.deploy.loadapp(config_uri);
 
 # Load server
 
+config_uri = 'config:%s#%s' %(config_file, args.server_name)
 server = paste.deploy.loadserver(config_uri)
 
 # Serve 
