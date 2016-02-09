@@ -5,8 +5,6 @@ import argparse
 import sys
 import json
 import mimetypes
-import webtest
-from paste.deploy import loadapp
 
 here = os.path.dirname(os.path.realpath(__file__))
 
@@ -35,9 +33,14 @@ if args.pyenv_dir:
         os.path.join(args.pyenv_dir, 'bin/activate_this.py'))
     execfile(activate_this, dict(__file__=activate_this))
 
+# Import project-specific modules
+
+import paste.deploy
+import webtest
+
 # Load WSGI application
 
-app = loadapp('config:%s' %(config_file))
+app = paste.deploy.loadapp('config:%s' %(config_file))
 
 # Dispatch request to testing application
 

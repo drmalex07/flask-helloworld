@@ -2,9 +2,7 @@
 
 import os
 import argparse
-import logging
 import logging.config
-from paste.deploy import loadapp, loadserver
 
 here = os.path.dirname(os.path.realpath(__file__))
 
@@ -24,17 +22,21 @@ if args.pyenv_dir:
         os.path.join(args.pyenv_dir, 'bin/activate_this.py'))
     execfile(activate_this, dict(__file__=activate_this))
 
+# Import project-specific modules
+
+import paste.deploy
+
 # Setup loggers
 
 logging.config.fileConfig(config_file)
 
 # Load application
 
-app = loadapp(config_uri);
+app = paste.deploy.loadapp(config_uri);
 
 # Load server
 
-server = loadserver(config_uri)
+server = paste.deploy.loadserver(config_uri)
 
 # Serve 
 
