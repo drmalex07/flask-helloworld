@@ -13,7 +13,8 @@ setup(
         'jinja2',
         'flask',
         'beaker',
-        'pastedeploy'
+        'pastedeploy',
+        'webtest',
     ],
     setup_requires=[
     ],
