@@ -14,6 +14,7 @@ setup(
         'flask',
         'beaker',
         'paste',
+        'pastedeploy',
         'repoze.who<1.1',
         'repoze.who-friendlyform',
         'webtest',
