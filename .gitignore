@@ -1,5 +1,5 @@
 *.pyc
 *.egg-info
+*.ini
 htpasswd
-config.ini
-who.ini
+data

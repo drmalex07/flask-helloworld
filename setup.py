@@ -18,6 +18,7 @@ setup(
         'repoze.who<1.1',
         'repoze.who-friendlyform',
         'webtest',
+        'sqlalchemy'
     ],
     setup_requires=[
     ],

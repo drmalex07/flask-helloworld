@@ -2,30 +2,18 @@
 
 debug = on
 
-# 
-# Server
-#
-
 [server:main]
-
-use = native
-
-[server:native]
 
 use = egg:helloworld#native
 debug = on
 host = 127.0.100.3
 port = 5000
 
-#
-# Application
-#
-
 [app:main]
 
 use = egg:helloworld#main
 
-data_dir = /tmp/helloworld/
+data_dir = %(here)s/data
 
 beaker.session.type = file
 beaker.session.data_dir = %(data_dir)s/session/
@@ -37,12 +25,11 @@ beaker.cache.type = file
 beaker.cache.data_dir = %(data_dir)s/cache/
 beaker.cache.lock_dir = %(data_dir)s/cache/locks
 
+database.url = sqlite:////%(data_dir)s/main.db
+
 who.config = %(here)s/who.ini
 who.log = %(data_dir)s/who.log
 
-#
-# Logging
-#
 
 [loggers]
 keys = root
