@@ -15,6 +15,7 @@ setup(
         'beaker',
         'pastedeploy',
         'webtest',
+        'sqlalchemy'
     ],
     setup_requires=[
     ],

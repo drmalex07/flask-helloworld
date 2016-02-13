@@ -19,6 +19,9 @@ argp.add_argument("-x", "--method", dest='method', type=str,
     default='GET', choices=['GET', 'POST']);
 argp.add_argument("-d", "--data-file", dest='data_file', type=str, 
     help=u'Post contents of a file');
+argp.add_argument("-t", "--content-type", dest='content_type', type=str,
+    help=u'Specify the content-type of posted data (or "guess")',
+    default='application/x-www-form-urlencoded');
 argp.add_argument("-o", "--output-file", dest='output_file', type=str,
     default='/tmp/result.json',
     help=u'Dump JSON output to a file');
@@ -62,7 +65,8 @@ elif args.method == 'POST':
         data = None
         with open(data_file, 'r') as ifp:
             data = ifp.read()
-        headers['Content-Type'] = content_type
+        headers['Content-Type'] = (
+            content_type if args.content_type == 'guess' else args.content_type)
         res = testapp.post(args.path, data, headers=headers, extra_environ=extra_environ)
     else:
         res = testapp.post(args.path, extra_environ=extra_environ)

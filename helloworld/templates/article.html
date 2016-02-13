@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <title>Article</title>
+{% endblock %}
+
+{% block body %}
+    <h2>Article: {{article.title|title}}</h2>
+    <p>{{article.body}}</p>
+
+    <p><small>Back to <a href="{{url_for('list_articles')}}">articles</a></small></p>
+{% endblock %}

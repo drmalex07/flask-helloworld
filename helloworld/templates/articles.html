@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <title>Articles</title>
+{% endblock %}
+
+{% block body %}
+    <h2>Articles</h2>
+    
+    {% if articles|length == 0 %}
+    <p>No articles posted so far!</p>
+    {% else %}
+    <ul>
+        {% for article in articles %}
+        <li><a href="{{url_for("show_article", aid=article.id)}}">{{article.title|title}}</a></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+{% endblock %}
