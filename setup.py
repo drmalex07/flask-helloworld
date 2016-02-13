@@ -24,7 +24,7 @@ setup(
             'main=helloworld.app:make_app',
         ],
         'paste.server_factory': [
-            'native=helloworld.app:make_server',
+            'native=helloworld.server:make_server',
         ],
     },
     zip_safe=False)

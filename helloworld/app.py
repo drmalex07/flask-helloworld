@@ -92,8 +92,3 @@ def make_app(global_config, **app_config):
 
     return app
 
-def make_server(global_config, debug=True, host='127.0.0.1', port=5000):
-    port = int(port)
-    def serve(app):
-        app.run(debug=debug, host=host, port=port)
-    return serve
