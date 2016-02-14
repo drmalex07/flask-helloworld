@@ -4,9 +4,19 @@ debug = on
 
 [server:main]
 
+use = helloworld
+
+[server:helloworld]
+
 use = egg:helloworld#native
 debug = on
-host = 127.0.100.3
+host = helloworld.internal
+port = 5000
+
+[server:paster]
+
+use = egg:Paste#http
+host = helloworld.internal
 port = 5000
 
 [app:main]
