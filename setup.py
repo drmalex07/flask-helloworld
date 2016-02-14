@@ -15,6 +15,7 @@ setup(
         'beaker',
         'paste',
         'pastedeploy',
+        'pastescript',
         'repoze.who<1.1',
         'repoze.who-friendlyform',
         'webtest',
@@ -29,6 +30,9 @@ setup(
         'paste.server_factory': [
             'native=helloworld.server:make_server',
         ],
+        'paste.paster_command': [
+            'init-db=helloworld.commands:InitDatabase',
+        ]
     },
     zip_safe=False)
 
