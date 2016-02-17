@@ -82,13 +82,5 @@ def make_app(global_config, **app_config):
         log.info('Rendering template hello.html')
         return render_template('hello.html', name=name)
 
-    # Setup middleware
-    
-    from beaker.middleware import SessionMiddleware
-    
-    app.wsgi_app = SessionMiddleware(app.wsgi_app, app_config)
-    
-    # Done 
-
     return app
 
