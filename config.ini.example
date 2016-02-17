@@ -2,38 +2,56 @@
 
 debug = on
 
+data_dir = %(here)s/data
+
 [server:main]
 
-use = helloworld
+use = native
 
-[server:helloworld]
+[server:native]
 
 use = egg:helloworld#native
 debug = on
 host = helloworld.internal
 port = 5000
 
-[server:paster]
+[pipeline:main]
 
-use = egg:Paste#http
-host = helloworld.internal
-port = 5000
+pipeline =
+    static
+    session
+    who 
+    main-app
 
-[app:main]
+[filter:static]
+
+use = egg:helloworld#static
+document_root = %(here)s/public
+cache_max_age = 1800
+
+[filter:session]
+
+use = egg:helloworld#session
+
+session.type = file
+session.data_dir = %(data_dir)s/session/
+session.key = helloworld
+session.secret = dJkUgAajzrRiD8hrNbdcnQ==
+session.timeout = 3600
+cache.type = file
+cache.data_dir = %(data_dir)s/cache/
+cache.lock_dir = %(data_dir)s/cache/locks
+
+[filter:who]
+
+use = egg:helloworld#who
+
+config_file = %(here)s/who.ini
+log_file = %(data_dir)s/who.log
+
+[app:main-app]
 
 use = egg:helloworld#main
-
-data_dir = %(here)s/data
-
-beaker.session.type = file
-beaker.session.data_dir = %(data_dir)s/session/
-beaker.session.key = helloworld
-beaker.session.secret = dJkUgAajzrRiD8hrNbdcnQ==
-beaker.session.timeout = 3600
-
-beaker.cache.type = file
-beaker.cache.data_dir = %(data_dir)s/cache/
-beaker.cache.lock_dir = %(data_dir)s/cache/locks
 
 database.url = sqlite:////%(data_dir)s/main.db
 
@@ -61,6 +79,5 @@ level = DEBUG
 formatter = generic
 
 [formatter_generic]
-#format = %(asctime)s,%(msecs)03d %(levelname)-5.5s [%(name)s] [%(threadName)s] %(message)s
 format = %(levelname)-7.7s [%(name)s] [%(threadName)s] %(message)s
 datefmt = %H:%M:%S
