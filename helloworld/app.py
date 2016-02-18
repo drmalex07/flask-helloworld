@@ -32,7 +32,9 @@ def make_app(global_config, **app_config):
 
     @app.context_processor
     def setup_template_variables():
-        return dict(foo=session.get('foo'), baz='99')
+        identity = request.environ.get('repoze.who.identity')
+        user = identity['repoze.who.userid'] if identity else None
+        return dict(user=user, foo=session.get('foo'), baz='99')
     
     # Setup application routes
 
@@ -103,9 +105,7 @@ def make_app(global_config, **app_config):
     @app.route('/user/welcome')
     @authenticated
     def user_welcome():
-        identity = request.environ.get('repoze.who.identity')
-        return render_template('user/welcome.html',
-            user=identity['repoze.who.userid'])
+        return render_template('user/welcome.html')
 
     @app.route('/login')
     def login():
