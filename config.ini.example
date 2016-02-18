@@ -55,10 +55,6 @@ use = egg:helloworld#main
 
 database.url = sqlite:////%(data_dir)s/main.db
 
-who.config = %(here)s/who.ini
-who.log = %(data_dir)s/who.log
-
-
 [loggers]
 keys = root
 
