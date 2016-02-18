@@ -1,0 +1,23 @@
+{% extends "page.html" %}
+
+{% block head %}
+    {{ super() }}
+    <title>New article</title>
+{% endblock %}
+
+{% block page_body %}
+    <h2>Write a new article!</h2>
+    <form method="post" enctype="application/x-www-form-urlencoded">
+      <div class="form-group">
+        <label for="title">Title:</label>
+        <input type="text" class="form-control" id="input-title" name="title" placeholder="A brief title"/>
+      </div>
+      <div class="form-group">
+        <label for="body">Content:</label>
+        <textarea class="form-control" id="input-body" name="body" placeholder="Blah Blah" rows="5"></textarea>
+        <p class="help-block">Be short!</p>
+      </div>
+      <button type="submit" name="save" class="btn btn-success">Save</button>
+      <button type="submit" name="cancel" class="btn btn-default">Cancel</button>
+    </form>
+{% endblock %}
