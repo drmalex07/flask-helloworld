@@ -1,11 +1,8 @@
-#!/usr/bin/env python
-
 import json
-import flask
 import urllib
 import logging
 from urllib import urlencode
-from flask import request, session
+from flask import Flask, request, session
 from flask import url_for, make_response, redirect, abort
 from flask import render_template
 import sqlalchemy
@@ -15,8 +12,7 @@ from helloworld.blueprints import (admin_blueprint, articles_blueprint)
 
 def make_app(global_config, **app_config):
 
-    app = flask.Flask(__name__)
-    
+    app = Flask(__name__)
     app.config.update(app_config)
 
     log1 = logging.getLogger(__name__)
