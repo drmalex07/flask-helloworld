@@ -13,6 +13,7 @@ import sqlalchemy
 from helloworld import model
 
 from helloworld.lib.helpers import authenticated
+from helloworld.controllers import ArticlesController
 
 def make_app(global_config, **app_config):
 
@@ -47,43 +48,20 @@ def make_app(global_config, **app_config):
             return 'foo=' + session['foo']
     
     @app.route('/articles', methods=['GET'])
-    def list_articles():
-        db_session = model.Session()
-        articles = db_session.query(model.Article)\
-            .order_by(model.Article.posted_at.desc()).all()
-        return render_template('articles.html', articles=articles)
+    def list_articles(): 
+        return ArticlesController().list_articles()
     
     @app.route('/article/<aid>')
     def show_article(aid):
-        db_session = model.Session()
-        article = db_session.query(model.Article).get(aid)
-        return render_template('article.html', article=article)
+        return ArticlesController().show_article(aid)
    
     @app.route('/new-article', methods=['POST'])
     def save_new_article():
-        redirect_url = None 
-        if 'cancel' in request.form:
-            redirect_url = url_for('list_articles')
-        else:
-            db_session = model.Session()
-            article = model.Article(
-                title=request.form['title'], body=request.form['body'])
-            try:
-                db_session.add(article)
-                db_session.commit()
-                redirect_url = url_for('list_articles')
-            except:
-                db_session.abort()
-            finally:
-                db_session.close()
-        if redirect_url:
-            return redirect(redirect_url)
-        else:
-            abort(500)
+       return ArticlesController().save_new_article() 
   
     @app.route('/new-article', methods=['GET'])
     def show_new_article():
-        return render_template('new-article.html')
+       return ArticlesController().show_new_article() 
     
     @app.route('/environ')
     def print_environ():
