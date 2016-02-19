@@ -58,8 +58,10 @@ def make_session_filter(global_config, **config):
     return filter
 
 def make_urlmap_filter(global_config, **config):
+    
+    # Note: See also http://flask.pocoo.org/docs/0.10/patterns/appdispatch/#dispatch-by-path
 
-    from paste.urlmap import URLMap
+    from werkzeug.wsgi import DispatcherMiddleware
     from paste.deploy import loadapp
     
     config_file = global_config['__file__']
@@ -67,10 +69,11 @@ def make_urlmap_filter(global_config, **config):
     # Note: The non-default applications (mapped at certain prefixes)
     # will not behave as Flask applications (will only be WSGI compatible)
     def filter(app):
-        app.wsgi_app = URLMap(app.wsgi_app)
+        prefix_map = {}
         for prefix, name in config.items():
             if not name.startswith('config:'):
                 name = 'config:%s#%s' % (config_file, name)
-            app.wsgi_app[prefix] = loadapp(name)
+            prefix_map[prefix] = loadapp(name)
+        app.wsgi_app = DispatcherMiddleware(app.wsgi_app, prefix_map)
         return app
     return filter
