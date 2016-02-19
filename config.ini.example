@@ -20,6 +20,7 @@ port = 5000
 pipeline =
     static
     session
+    mapper
     main-app
 
 [filter:static]
@@ -41,9 +42,21 @@ cache.type = file
 cache.data_dir = %(data_dir)s/cache/
 cache.lock_dir = %(data_dir)s/cache/locks
 
+[filter:mapper]
+
+use = egg:helloworld#urlmap
+
+/admin = admin-app
+
 [app:main-app]
 
 use = egg:helloworld#main
+
+database.url = sqlite:////%(data_dir)s/main.db
+
+[app:admin-app]
+
+use = egg:helloworld#admin
 
 database.url = sqlite:////%(data_dir)s/main.db
 
