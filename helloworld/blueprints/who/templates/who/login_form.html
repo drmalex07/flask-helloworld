@@ -1,0 +1,24 @@
+<html>
+<body>
+   <form method="POST" action="{{login_handler}}">
+      <h3>Sign in!</h3>
+      {% if login_counter > 0 %}
+      <p><small>You have {{login_counter}} login attempts</small></p>  
+      {% endif %}  
+
+      <div class="form-group">
+        <label for="login">Username</label>
+        <input type="text" id="input-login" name="login"/>
+      </div>
+        
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="input-password" name="password"/>
+      </div>
+
+      <div class="form-group">
+        <button type="submit">Sign in</button>
+      </div>    
+  </form>
+</body>
+</html>

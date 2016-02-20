@@ -8,7 +8,7 @@
 {% block page_body %}
     <h2>Articles</h2>
    
-    <p>Post a <a href="{{url_for('show_new_article')}}">new </a>article!</p>
+    <p>Post a <a href="{{url_for('articles.edit_new')}}">new</a> article!</p>
 
     {% if articles|length == 0 %}
     <p>No articles posted so far!</p>
@@ -17,7 +17,7 @@
         {% for article in articles %}
         <li>
            <span>[{{article.posted_at.date()}}]</span>
-           <a href="{{url_for("show_article", aid=article.id)}}">{{article.title|title}}</a>
+           <a href="{{url_for("articles.show", aid=article.id)}}">{{article.title|title}}</a>
         </li>
         {% endfor %}
     </ul>

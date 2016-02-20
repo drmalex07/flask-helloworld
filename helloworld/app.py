@@ -5,7 +5,10 @@ from flask import render_template
 import sqlalchemy
 
 from helloworld import model
-from helloworld.lib.auth.helpers import (authenticated, get_authenticated_user)
+from helloworld.lib.auth.helpers import (
+    authenticated, get_authenticated_user)
+from helloworld.blueprints import (
+    who_blueprint, admin_blueprint, articles_blueprint)
 
 def make_app(global_config, **app_config):
 
@@ -22,9 +25,18 @@ def make_app(global_config, **app_config):
 
     @app.context_processor
     def setup_template_variables():
-        return dict(user=get_authenticated_user(), baz='99')
+        return dict(
+	        user = get_authenticated_user(),
+            foo = session.get('foo'),
+            baz = '99')
     
     # Setup application routes
+    
+    app.register_blueprint(who_blueprint)
+    
+    app.register_blueprint(admin_blueprint, url_prefix='/admin')
+    
+    app.register_blueprint(articles_blueprint, url_prefix='/articles')
 
     @app.route('/foo')
     def remember_foo():
@@ -33,45 +45,6 @@ def make_app(global_config, **app_config):
             return 'foo=' + session['foo'] + " [saved]"
         else:
             return 'foo=' + session['foo']
-    
-    @app.route('/articles', methods=['GET'])
-    def list_articles():
-        db_session = model.Session()
-        articles = db_session.query(model.Article)\
-            .order_by(model.Article.posted_at.desc()).all()
-        return render_template('articles.html', articles=articles)
-    
-    @app.route('/article/<aid>')
-    def show_article(aid):
-        db_session = model.Session()
-        article = db_session.query(model.Article).get(aid)
-        return render_template('article.html', article=article)
-   
-    @app.route('/new-article', methods=['POST'])
-    def save_new_article():
-        redirect_url = None 
-        if 'cancel' in request.form:
-            redirect_url = url_for('list_articles')
-        else:
-            db_session = model.Session()
-            article = model.Article(
-                title=request.form['title'], body=request.form['body'])
-            try:
-                db_session.add(article)
-                db_session.commit()
-                redirect_url = url_for('list_articles')
-            except:
-                db_session.abort()
-            finally:
-                db_session.close()
-        if redirect_url:
-            return redirect(redirect_url)
-        else:
-            abort(500)
-  
-    @app.route('/new-article', methods=['GET'])
-    def show_new_article():
-        return render_template('new-article.html')
     
     @app.route('/environ')
     def print_environ():
@@ -93,49 +66,8 @@ def make_app(global_config, **app_config):
     @app.route('/user/welcome')
     @authenticated
     def user_welcome():
-        return render_template('user/welcome.html')
+        logout_url = url_for('who.logout')
+        return render_template('user/welcome.html', logout_url=logout_url)
 
-    # Define actions needed for repoze.who-friendlyform login
-    
-    @app.route('/login')
-    def login():
-        from_url = request.args.get('came_from', '/')
-        n = request.environ['repoze.who.logins']
-        handler = url_for('handle_login', came_from=from_url, n=n)
-        tpl_vars = dict(login_handler=handler, came_from=from_url, login_counter=n)
-        return render_template('login_form.html', **tpl_vars)
-    
-    @app.route('/handle-login')
-    def handle_login():
-        # noop: intercepted by repoze.who-friendlyform
-        return
-
-    @app.route('/logout')
-    def logout():
-        return redirect(url_for('handle_logout'))
-    
-    @app.route('/handle-logout')
-    def handle_logout():
-        # noop: intercepted by repoze.who-friendlyform
-        return
-
-    @app.route('/logged-in')
-    def after_login():
-        '''A hook invoked after every login attempt (successfull or not)'''
-        identity = request.environ.get('repoze.who.identity')
-        from_url = request.args.get('came_from', '/')
-        if identity:
-            return redirect(from_url)
-        else:
-            n = request.environ['repoze.who.logins'] + 1
-            login_url = url_for('.login', came_from=from_url, n=n)
-            return redirect(login_url)
-
-    @app.route('/logged-out')
-    def after_logout():
-        '''A hook invoked after a successfull logout (i.e. "forget" action)'''
-        return render_template('bye.html')
-
-    # Done
     return app
 
