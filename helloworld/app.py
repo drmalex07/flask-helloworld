@@ -1,11 +1,7 @@
-#!/usr/bin/env python
-
 import json
-import flask
 import urllib
-import logging
 from urllib import urlencode
-from flask import request, session
+from flask import Flask, request, session, current_app
 from flask import url_for, make_response, redirect, abort
 from flask import render_template
 import sqlalchemy
@@ -14,11 +10,8 @@ from helloworld import model
 
 def make_app(global_config, **app_config):
 
-    app = flask.Flask(__name__)
-    
+    app = Flask(__name__)
     app.config.update(app_config)
-
-    log1 = logging.getLogger(__name__)
 
     # Create database session factory for requests
     
@@ -94,7 +87,7 @@ def make_app(global_config, **app_config):
     @app.route('/hello')
     @app.route('/hello/<name>')
     def hello(name='nobody'):
-        log1.info('Rendering template hello.html')
+        current_app.logger.info('Rendering template hello.html')
         return render_template('hello.html', name=name)
 
     return app
