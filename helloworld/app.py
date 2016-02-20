@@ -1,20 +1,14 @@
 #!/usr/bin/env python
 
 import json
-import flask
-import urllib
-import logging
-from urllib import urlencode
+from flask import Flask, current_app
 from flask import url_for, request, make_response, redirect
 from flask import render_template
 from beaker.middleware import SessionMiddleware
 
-
 from helloworld import config
 
-app = flask.Flask(__name__)
-
-log = logging.getLogger(__name__)
+app = Flask(__name__)
 
 #
 # Setup application routes
@@ -42,7 +36,7 @@ def print_environ():
 @app.route('/hello')
 @app.route('/hello/<name>')
 def hello(name='nobody'):
-    log.info('Rendering template hello.html')
+    current_app.logger.info('Rendering template hello.html')
     return render_template('hello.html', name=name)
 
 #
