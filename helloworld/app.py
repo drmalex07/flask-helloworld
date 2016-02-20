@@ -1,14 +1,11 @@
 import json
-import urllib
-from urllib import urlencode
 from flask import Flask, request, session, current_app
 from flask import url_for, make_response, redirect, abort
 from flask import render_template
 import sqlalchemy
 
 from helloworld import model
-
-from helloworld.lib.helpers import authenticated
+from helloworld.lib.auth.helpers import (authenticated, get_authenticated_user)
 
 def make_app(global_config, **app_config):
 
@@ -25,9 +22,7 @@ def make_app(global_config, **app_config):
 
     @app.context_processor
     def setup_template_variables():
-        identity = request.environ.get('repoze.who.identity')
-        user = identity['repoze.who.userid'] if identity else None
-        return dict(user=user, foo=session.get('foo'), baz='99')
+        return dict(user=get_authenticated_user(), baz='99')
     
     # Setup application routes
 
@@ -100,22 +95,33 @@ def make_app(global_config, **app_config):
     def user_welcome():
         return render_template('user/welcome.html')
 
+    # Define actions needed for repoze.who-friendlyform login
+    
     @app.route('/login')
     def login():
         from_url = request.args.get('came_from', '/')
         n = request.environ['repoze.who.logins']
-        handler = '/handle_login?' + urlencode({'came_from': from_url, 'n':  n})
+        handler = url_for('handle_login', came_from=from_url, n=n)
         tpl_vars = dict(login_handler=handler, came_from=from_url, login_counter=n)
         return render_template('login_form.html', **tpl_vars)
+    
+    @app.route('/handle-login')
+    def handle_login():
+        # noop: intercepted by repoze.who-friendlyform
+        return
 
     @app.route('/logout')
     def logout():
-        return redirect('/handle_logout')
+        return redirect(url_for('handle_logout'))
+    
+    @app.route('/handle-logout')
+    def handle_logout():
+        # noop: intercepted by repoze.who-friendlyform
+        return
 
     @app.route('/logged-in')
     def after_login():
-        '''A hook invoked after every login attempt (successfull or not)
-        '''
+        '''A hook invoked after every login attempt (successfull or not)'''
         identity = request.environ.get('repoze.who.identity')
         from_url = request.args.get('came_from', '/')
         if identity:
@@ -127,10 +133,9 @@ def make_app(global_config, **app_config):
 
     @app.route('/logged-out')
     def after_logout():
-        '''A hook invoked after a successfull logout (i.e. "forget" action)
-        '''
+        '''A hook invoked after a successfull logout (i.e. "forget" action)'''
         return render_template('bye.html')
 
-    
+    # Done
     return app
 
