@@ -3,3 +3,7 @@
 *.ini
 htpasswd
 data
+
+env
+dist
+build
