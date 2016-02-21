@@ -8,7 +8,7 @@ from helloworld import model
 from helloworld.lib.auth.helpers import (
     authenticated, get_authenticated_user)
 from helloworld.blueprints import (
-    who_blueprint, admin_blueprint, articles_blueprint)
+    make_who_blueprint, admin_blueprint, articles_blueprint)
 
 def make_app(global_config, **app_config):
 
@@ -32,7 +32,7 @@ def make_app(global_config, **app_config):
     
     # Setup application routes
     
-    app.register_blueprint(who_blueprint)
+    app.register_blueprint(make_who_blueprint('who'))
     
     app.register_blueprint(admin_blueprint, url_prefix='/admin')
     
