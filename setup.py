@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='helloworld',
@@ -8,7 +8,21 @@ setup(
     author='Michail Alexakis',
     author_email='malex@example.com',
     license='MIT',
-    packages=['helloworld'],
+    packages=find_packages(),
+    package_data={
+        'helloworld': [
+            'templates/*.html', 
+            'templates/user/*.html', 'templates/admin/*.html', 'templates/who/*.html'],
+        'helloworld.blueprints.admin': [
+            'templates/admin/*.html',
+        ],
+        'helloworld.blueprints.articles': [
+            'templates/articles/*.html',
+        ],
+        'helloworld.blueprints.who': [
+            'templates/who/*.html',
+        ],
+    },
     install_requires=[
         'jinja2',
         'flask',
