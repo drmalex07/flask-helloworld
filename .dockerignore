@@ -1,0 +1,10 @@
+data
+!data/main.db
+
+build
+env
+
+.git
+
+**/*.pyc
+*.egg-info

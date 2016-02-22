@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='helloworld',
-    version='0.1',
+    version=open('VERSION').read(),
     description='Hello World',
     url='http://github.com/drmalex07/helloworld',
     author='Michail Alexakis',
