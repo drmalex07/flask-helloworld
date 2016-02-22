@@ -14,13 +14,7 @@ setup(
             'templates/*.html'],
     },
     install_requires=[
-        'jinja2',
-        'flask',
-        'beaker',
-        'pastedeploy',
-        'pastescript',
-        'webtest',
-        'sqlalchemy'
+        # Moved to requirements.txt
     ],
     setup_requires=[
     ],

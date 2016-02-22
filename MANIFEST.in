@@ -1,0 +1,3 @@
+include requirements.txt
+include config.ini.example
+recursive-include public *.css *.js
