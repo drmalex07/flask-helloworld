@@ -1,3 +1,5 @@
+# vim: set syntax=dosini:
+
 [DEFAULT]
 
 debug = on
@@ -24,7 +26,7 @@ session.type = file
 session.data_dir = %(data_dir)s/session/
 session.key = helloworld
 session.secret = {{session_secret}} 
-session.timeout = 3600
+session.timeout = {{session_timeout| default(3600)}}
 cache.type = file
 cache.data_dir = %(data_dir)s/cache/
 cache.lock_dir = %(data_dir)s/cache/locks
