@@ -5,6 +5,9 @@ RUN apt-get update && apt-get install -y \
   python python-dev python-setuptools python-pip \
   apache2 libapache2-mod-wsgi
 
+RUN apt-get clean
+RUN rm -rf /tmp/* /var/tmp/*
+
 ENV APACHE_RUN_USER=www-data
 ENV APACHE_RUN_GROUP=www-data
 ENV APACHE_PID_FILE=/var/run/apache2/apache2.pid
