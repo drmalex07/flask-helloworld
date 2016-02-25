@@ -3,27 +3,42 @@
 
 # Note: vagrant plugin install vagrant-triggers
 
+require 'yaml'
 require 'base64'
 require 'tempfile'
 require 'json'
 
-VERSION = File.read('VERSION')
+#
+# Basic configuration
+#
 
-SERVER_NAME = 'helloworld.internal'
+version = File.read('VERSION')
 
-SERVER_ADDRESS = '127.0.100.3' 
+global_config = YAML.load_file('deploy.yml')
 
-public_address = SERVER_ADDRESS
+app_config = global_config['app']
+
+appdata_config = global_config['app_data']
+
+#
+# Globals
+#
+
+server_name = app_config.fetch('server_name', 'helloworld.internal')
+
+address = app_config.fetch('address', '127.0.0.1')
+
+scheme = app_config.fetch('https')? 'https' : 'http'
 
 #
 # Helpers
 #
 
-def generate_file(path, tpl_path, context: {})
+def j2(infile, outfile, **context)
   # Note: Needs j2 command (pip install j2cli)
   t = Tempfile.new(['helloworld', '.json'])
   File.write(t.path, JSON.dump(context))
-  File.write(path, run("j2 #{tpl_path} #{t.path}"))
+  File.write(outfile, run("j2 #{infile} #{t.path}"))
 end
 
 def run_docker_build(image_name, dockerfile: 'Dockerfile', build_args: {})
@@ -59,7 +74,7 @@ Vagrant.configure(2) do |config|
   ## Prepare needed Docker images
 
   config.trigger.before :up, :vm => '^app-data$' do
-    run_docker_build "local/helloworld-data:#{VERSION}",
+    run_docker_build "local/helloworld-data:#{version}",
       dockerfile: "deploy/app-data/Dockerfile"
   end
   
@@ -69,22 +84,30 @@ Vagrant.configure(2) do |config|
   end
 
   config.trigger.before :up, :vm => '^app$' do
-    context = {
+    if scheme == 'https'
+      vhost_tpl_name = 'vhost-ssl.conf.j2'
+      dockerfile = 'vhost-ssl.dockerfile'
+    else
+      vhost_tpl_name = 'vhost.conf.j2'
+      dockerfile = 'vhost.dockerfile'
+    end
+    j2 "deploy/app/config.ini.j2", "deploy/app/config.ini",
       :session_secret => Base64.encode64(Random.new.bytes(16)).strip(),
-      :session_timeout => 7200, 
-    }
-    generate_file "deploy/app/config.ini", "deploy/app/config.ini.j2",
-      context: context
-    run_docker_build "local/helloworld:#{VERSION}",
-      dockerfile: 'deploy/app/Dockerfile',
-      build_args: {:version => VERSION}
+      :session_timeout => 7200
+    j2 "deploy/app/#{vhost_tpl_name}", "deploy/app/vhost.conf",
+      :name => app_config['name'],
+      :num_processes => app_config['wsgi']['num_processes'],
+      :num_threads => app_config['wsgi']['num_threads']
+    run_docker_build "local/helloworld:#{version}",
+      :dockerfile => "deploy/app/#{dockerfile}",
+      :build_args => {:version => version}
   end
 
   ## Create data volume container (helloworld-data) 
 
   config.vm.define "app-data" do |container|
     container.vm.provider "docker" do |p|
-      p.image = "local/helloworld-data:#{VERSION}"
+      p.image = "local/helloworld-data:#{version}"
       p.name = "helloworld-data"
       p.create_args = to_command_args(
         :hostname => "helloworld-data.internal")
@@ -97,15 +120,15 @@ Vagrant.configure(2) do |config|
   
   config.vm.define "app" do |container|
     container.vm.provider "docker" do |p|
-      p.image = "local/helloworld:#{VERSION}"
+      p.image = "local/helloworld:#{version}"
       p.name = "helloworld"
       p.env = {
-         'SERVER_NAME' => SERVER_NAME
+         'SERVER_NAME' => server_name
       }
       p.create_args = to_command_args(
         :hostname => "helloworld.internal",
         :volumes_from => "helloworld-data",
-        :publish => ["#{public_address}:80:80", "#{public_address}:443:443"])
+        :publish => ["#{address}:80:80", "#{address}:443:443"])
     end
     container.vm.synced_folder ".", "/vagrant", disabled: true
   end

@@ -1,24 +1,26 @@
+# vim: set syntax=apache:
+
 <IfModule mod_ssl.c>
-    <VirtualHost _default_:443>
+    <VirtualHost *:443>
         ServerAdmin webmaster@localhost
         ServerName ${SERVER_NAME}
 
         DocumentRoot /var/www/html
+
         <Directory /opt/helloworld/>
            Require all granted
         </Directory>
     
         WSGIPassAuthorization On
-        WSGIDaemonProcess "helloworld-ssl" processes=3 threads=4
-        WSGIProcessGroup "helloworld"
+        WSGIDaemonProcess "{{name}}-ssl" processes={{num_processes| default(1)}} threads={{num_threads| default(1)}}
+        WSGIProcessGroup "{{name}}-ssl"
         WSGIScriptAlias "/" /opt/helloworld/wsgi.py
 
         LogLevel info ssl:warn
-        ErrorLog ${APACHE_LOG_DIR}/error-ssl-${SERVER_NAME}.log
-        CustomLog ${APACHE_LOG_DIR}/access-ssl-${SERVER_NAME}.log combined
+        ErrorLog "${APACHE_LOG_DIR}/error-ssl-{{name}}.log"
+        CustomLog "${APACHE_LOG_DIR}/access-ssl-{{name}}.log" combined
         
         SSLEngine on
-
         SSLCertificateFile ${SERVER_CERTIFICATE_FILE}
         SSLCertificateKeyFile ${SERVER_KEY_FILE}
 

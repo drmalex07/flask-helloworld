@@ -16,11 +16,10 @@ ENV APACHE_LOCK_DIR=/var/lock/apache2
 ENV APACHE_LOG_DIR=/var/log/apache2
 ENV LANG=C
 
-RUN a2enmod ssl
-
 CMD ["/usr/sbin/apache2", "-DFOREGROUND", "-kstart"]
 
 EXPOSE 80
 EXPOSE 443
 
 VOLUME /var/log/apache2
+VOLUME /run

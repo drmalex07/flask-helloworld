@@ -1,0 +1,26 @@
+# vim: set syntax=yaml:
+
+---
+
+ app_data:
+
+   database_file: 'data/main.db'
+
+ app:
+
+   name: 'helloworld'
+
+   server_name: 'helloworld.internal'
+
+   address: '127.0.100.3'
+
+   https: true
+ 
+   forwarded_ports:
+   - '80:80'
+   - '443:443'
+
+   wsgi:
+     num_processes: 4
+     num_threads: 8
+

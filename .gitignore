@@ -9,3 +9,5 @@ data
 env
 dist
 build
+
+deploy.yml

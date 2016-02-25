@@ -6,5 +6,7 @@ env
 
 .git
 
+**/README.md
+**/.gitignore
 **/*.pyc
 *.egg-info
