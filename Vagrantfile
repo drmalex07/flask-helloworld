@@ -110,7 +110,7 @@ Vagrant.configure(2) do |config|
       p.image = "local/helloworld-data:#{version}"
       p.name = "helloworld-data"
       p.create_args = to_command_args(
-        :hostname => "helloworld-data.internal")
+        :hostname => "helloworld-data.1")
       p.remains_running = false
     end
     container.vm.synced_folder ".", "/vagrant", disabled: true
@@ -119,6 +119,10 @@ Vagrant.configure(2) do |config|
   ## Create application container (helloworld) 
   
   config.vm.define "app" do |container|
+    forwarded_ports = app_config['forwarded_ports'].map do |u|
+      port, container_port = u.split(":")
+      "#{address}:#{port}:#{container_port}"
+    end
     container.vm.provider "docker" do |p|
       p.image = "local/helloworld:#{version}"
       p.name = "helloworld"
@@ -126,9 +130,10 @@ Vagrant.configure(2) do |config|
          'SERVER_NAME' => server_name
       }
       p.create_args = to_command_args(
-        :hostname => "helloworld.internal",
+        :hostname => "helloworld.1",
         :volumes_from => "helloworld-data",
-        :publish => ["#{address}:80:80", "#{address}:443:443"])
+        :publish => forwarded_ports
+      )
     end
     container.vm.synced_folder ".", "/vagrant", disabled: true
   end
