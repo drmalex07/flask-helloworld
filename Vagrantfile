@@ -7,6 +7,7 @@ require 'yaml'
 require 'base64'
 require 'tempfile'
 require 'json'
+require 'pry'
 
 #
 # Basic configuration
@@ -16,9 +17,9 @@ version = File.read('VERSION')
 
 global_config = YAML.load_file('deploy.yml')
 
-app_config = global_config['app']
+app_config = global_config['containers']['app']
 
-appdata_config = global_config['app_data']
+database_config = global_config['containers']['database']
 
 #
 # Globals
@@ -29,6 +30,8 @@ server_name = app_config.fetch('server_name', 'helloworld.internal')
 address = app_config.fetch('address', '127.0.0.1')
 
 scheme = app_config.fetch('https')? 'https' : 'http'
+
+db_file = database_config['file']
 
 #
 # Helpers
@@ -44,16 +47,29 @@ end
 def run_docker_build(image_name, dockerfile: 'Dockerfile', build_args: {})
   extra_args = build_args.map do |k, v| "--build-arg #{k}=#{v}" end
   run "docker build -t #{image_name} -f #{dockerfile} #{extra_args.join(' ')} ."
+  return
+end
+
+def run_docker_exec(container_name, command)
+  run "docker exec #{container_name} #{command}"
+  return
+end
+
+def run_docker_inspect(container_name)
+  s = run "docker inspect #{container_name}"
+  r = JSON.load(s)
+  return r[0]
 end
 
 def to_command_args(**kwargs)
     # Transform keyword args to an array of getopt-style command args
+    a = lambda do |k, v| "--#{k}=#{v}" end
     r = kwargs.map do |k, v| 
       k = k.to_s().gsub('_', '-')
       if v.instance_of?(Array)
-        v.map do |v1| "--#{k}=#{v1}" end
+        v.map do |v1| a.call(k, v1) end
       else 
-        "--#{k}=#{v}"
+        a.call(k, v)
       end
     end
     r.flatten()
@@ -73,9 +89,15 @@ Vagrant.configure(2) do |config|
   
   ## Prepare needed Docker images
 
-  config.trigger.before :up, :vm => '^app-data$' do
-    run_docker_build "local/helloworld-data:#{version}",
-      dockerfile: "deploy/app-data/Dockerfile"
+  config.trigger.before :up, :vm => '^database$' do
+    if (db_file and File.exists?(db_file))
+      run_docker_build "local/helloworld-database:#{version}",
+        dockerfile: "deploy/database/database.dockerfile",
+        build_args: {:db_file => db_file}
+    else
+      run_docker_build "local/helloworld-database:#{version}",
+        dockerfile: "deploy/database/database-empty.dockerfile"
+    end
   end
   
   config.trigger.before :up, :vm => '^app$' do
@@ -84,33 +106,44 @@ Vagrant.configure(2) do |config|
   end
 
   config.trigger.before :up, :vm => '^app$' do
-    if scheme == 'https'
-      vhost_tpl_name = 'vhost-ssl.conf.j2'
-      dockerfile = 'vhost-ssl.dockerfile'
-    else
-      vhost_tpl_name = 'vhost.conf.j2'
-      dockerfile = 'vhost.dockerfile'
-    end
-    j2 "deploy/app/config.ini.j2", "deploy/app/config.ini",
-      :session_secret => Base64.encode64(Random.new.bytes(16)).strip(),
-      :session_timeout => 7200
-    j2 "deploy/app/#{vhost_tpl_name}", "deploy/app/vhost.conf",
+    vhost_vars = {
       :name => app_config['name'],
       :num_processes => app_config['wsgi']['num_processes'],
       :num_threads => app_config['wsgi']['num_threads']
-    run_docker_build "local/helloworld:#{version}",
-      :dockerfile => "deploy/app/#{dockerfile}",
-      :build_args => {:version => version}
+    }
+    j2 "deploy/app/config.ini.j2", "deploy/app/config.ini",
+      :session_secret => Base64.encode64(Random.new.bytes(16)).strip(),
+      :session_timeout => 7200
+    if scheme == 'https'
+      j2 "deploy/app/vhost-ssl.conf.j2", "deploy/app/vhost.conf", **vhost_vars
+      run_docker_build "local/helloworld:#{version}",
+        :dockerfile => "deploy/app/vhost-ssl.dockerfile",
+        :build_args => {:version => version}
+    else
+      j2 "deploy/app/vhost.conf.j2", "deploy/app/vhost.conf", **vhost_vars
+      run_docker_build "local/helloworld:#{version}",
+        :dockerfile => "deploy/app/vhost.dockerfile",
+        :build_args => {:version => version}
+    end
   end
 
-  ## Create data volume container (helloworld-data) 
+  ## Initialize empty database
+  
+  config.trigger.after :up, :vm => '^app$' do
+    if not db_file
+      info "The database is empty: will initialize it"
+      run_docker_exec "helloworld", "paster init-db -v --name main-app"
+    end
+  end
 
-  config.vm.define "app-data" do |container|
+  ## Create data volume container (helloworld-database) 
+
+  config.vm.define "database" do |container|
     container.vm.provider "docker" do |p|
-      p.image = "local/helloworld-data:#{version}"
-      p.name = "helloworld-data"
+      p.image = "local/helloworld-database:#{version}"
+      p.name = "helloworld-database"
       p.create_args = to_command_args(
-        :hostname => "helloworld-data.1")
+        :hostname => "helloworld-database.1")
       p.remains_running = false
     end
     container.vm.synced_folder ".", "/vagrant", disabled: true
@@ -120,8 +153,7 @@ Vagrant.configure(2) do |config|
   
   config.vm.define "app" do |container|
     forwarded_ports = app_config['forwarded_ports'].map do |u|
-      port, container_port = u.split(":")
-      "#{address}:#{port}:#{container_port}"
+      host_port, port = u.split(":"); "#{address}:#{host_port}:#{port}"
     end
     container.vm.provider "docker" do |p|
       p.image = "local/helloworld:#{version}"
@@ -131,7 +163,7 @@ Vagrant.configure(2) do |config|
       }
       p.create_args = to_command_args(
         :hostname => "helloworld.1",
-        :volumes_from => "helloworld-data",
+        :volumes_from => "helloworld-database",
         :publish => forwarded_ports
       )
     end

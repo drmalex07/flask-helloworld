@@ -7,7 +7,7 @@ class InitDatabase(command.Command):
 
     # Describe positional arguments    
     max_args = 1
-    min_args = 1
+    min_args = 0
 
     usage = "CONFIG-FILE" # positional argumants
     summary = "Initialize database"
@@ -20,7 +20,17 @@ class InitDatabase(command.Command):
     parser.add_option("--name", "-n", dest='app_name', default='main')
     
     def command(self):
-        config_file = os.path.realpath(self.args[0])
+
+        # Read configuration 
+
+        config_file = self.args[0] if len(self.args) else os.environ['CONFIG_FILE']
+        config_file = os.path.realpath(config_file)
+        if not os.path.exists(config_file):
+            logging.error('Expected configuration at %s', config_file)
+            self.parser.print_help()
+            return
+        
+        logging.info('Using configuration from %s', config_file)
         config_uri = 'config:%s#%s' % (config_file, self.options.app_name)
 
         if self.verbose:
