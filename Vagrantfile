@@ -7,7 +7,13 @@ require 'yaml'
 require 'base64'
 require 'tempfile'
 require 'json'
-require 'pry'
+
+#
+# Environment
+#
+
+ENV['VAGRANT_DEFAULT_PROVIDER'] = 'docker'
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 
 #
 # Basic configuration
@@ -29,6 +35,8 @@ server_name = app_config.fetch('server_name', 'helloworld.internal')
 
 address = app_config.fetch('address', '127.0.0.1')
 
+forwarded_ports = app_config.fetch('forwarded_ports', ['80:80']).map do |u| u.split(':') end
+
 scheme = app_config.fetch('https')? 'https' : 'http'
 
 db_file = database_config['file']
@@ -48,17 +56,6 @@ def run_docker_build(image_name, dockerfile: 'Dockerfile', build_args: {})
   extra_args = build_args.map do |k, v| "--build-arg #{k}=#{v}" end
   run "docker build -t #{image_name} -f #{dockerfile} #{extra_args.join(' ')} ."
   return
-end
-
-def run_docker_exec(container_name, command)
-  run "docker exec #{container_name} #{command}"
-  return
-end
-
-def run_docker_inspect(container_name)
-  s = run "docker inspect #{container_name}"
-  r = JSON.load(s)
-  return r[0]
 end
 
 def to_command_args(**kwargs)
@@ -127,13 +124,10 @@ Vagrant.configure(2) do |config|
     end
   end
 
-  ## Initialize empty database
-  
+  ## Display info
+
   config.trigger.after :up, :vm => '^app$' do
-    if not db_file
-      info "The database is empty: will initialize it"
-      run_docker_exec "helloworld", "paster init-db -v --name main-app"
-    end
+    info "The application is started; Browse #{scheme}://#{server_name}"
   end
 
   ## Create data volume container (helloworld-database) 
@@ -142,8 +136,6 @@ Vagrant.configure(2) do |config|
     container.vm.provider "docker" do |p|
       p.image = "local/helloworld-database:#{version}"
       p.name = "helloworld-database"
-      p.create_args = to_command_args(
-        :hostname => "helloworld-database.1")
       p.remains_running = false
     end
     container.vm.synced_folder ".", "/vagrant", disabled: true
@@ -152,19 +144,15 @@ Vagrant.configure(2) do |config|
   ## Create application container (helloworld) 
   
   config.vm.define "app" do |container|
-    forwarded_ports = app_config['forwarded_ports'].map do |u|
-      host_port, port = u.split(":"); "#{address}:#{host_port}:#{port}"
-    end
     container.vm.provider "docker" do |p|
       p.image = "local/helloworld:#{version}"
       p.name = "helloworld"
       p.env = {
          'SERVER_NAME' => server_name
       }
+      p.ports = forwarded_ports.map do |host_port, port| "#{address}:#{host_port}:#{port}" end
       p.create_args = to_command_args(
-        :hostname => "helloworld.1",
         :volumes_from => "helloworld-database",
-        :publish => forwarded_ports
       )
     end
     container.vm.synced_folder ".", "/vagrant", disabled: true
