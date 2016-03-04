@@ -1,19 +1,17 @@
 # vim: set syntax=dockerfile: 
 
-FROM local/httpd:2.4-mod_wsgi
+FROM python:2.7-slim
 
-ARG version
+COPY deploy/app/ca-certificates/*.crt deploy/app/ca-certificates/*.pem /usr/local/share/ca-certificates/
+RUN update-ca-certificates
 
-ARG server_name=helloworld.internal
-ENV SERVER_NAME=${server_name}
-
-ENV SERVER_CERTIFICATE_FILE=/etc/ssl/certs/ssl-cert-snakeoil.pem
-ENV SERVER_KEY_FILE=/etc/ssl/private/ssl-cert-snakeoil.key
+ADD deploy/app/pip.conf /etc/pip.conf
+ENV PIP_CONFIG_FILE=/etc/pip.conf
 
 # Note: The config.ini expects a webserver-writable data directory at
 # /var/opt/helloworld/data (will be provided by a data volume container) 
 
-ENV HELLOWORLD_VERSION=${version:-0.0.1}
+ENV HELLOWORLD_VERSION={{version}}
 ENV HELLOWORLD_CONFIG_FILE=/etc/opt/helloworld/config.ini
 ENV CONFIG_FILE=${HELLOWORLD_CONFIG_FILE}
 
@@ -30,7 +28,3 @@ ADD deploy/app/wsgi.py /opt/helloworld/wsgi.py
 RUN chown -v www-data:www-data -R /var/opt/helloworld
 
 ADD deploy/app/config.ini /etc/opt/helloworld/config.ini
-
-ADD deploy/app/vhost.conf /etc/apache2/sites-available/helloworld-ssl.conf
-RUN a2enmod ssl
-RUN a2ensite helloworld-ssl

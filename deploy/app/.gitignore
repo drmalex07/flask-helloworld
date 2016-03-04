@@ -1,5 +1,13 @@
 config.ini
 vhost.conf
+vhost-ssl.conf
+pip.conf
+
+ca-certificates/*.crt
+ca-certificates/*.pem
+
+base.dockerfile
+server.dockerfile
 
 server.key
 server.crt

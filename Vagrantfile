@@ -27,6 +27,8 @@ app_config = global_config['containers']['app']
 
 database_config = global_config['containers']['database']
 
+pip_config = global_config['pip']
+
 #
 # Globals
 #
@@ -96,11 +98,6 @@ Vagrant.configure(2) do |config|
         dockerfile: "deploy/database/database-empty.dockerfile"
     end
   end
-  
-  config.trigger.before :up, :vm => '^app$' do
-    run_docker_build "local/httpd:2.4-mod_wsgi",
-      dockerfile: "deploy/httpd/Dockerfile"
-  end
 
   config.trigger.before :up, :vm => '^app$' do
     vhost_vars = {
@@ -108,20 +105,25 @@ Vagrant.configure(2) do |config|
       :num_processes => app_config['wsgi']['num_processes'],
       :num_threads => app_config['wsgi']['num_threads']
     }
+    # Prepare configuration files, dockerfiles
+    j2 "deploy/app/pip.conf.j2", "deploy/app/pip.conf", 
+      :index_url => pip_config['index_url']
     j2 "deploy/app/config.ini.j2", "deploy/app/config.ini",
       :session_secret => Base64.encode64(Random.new.bytes(16)).strip(),
       :session_timeout => 7200
-    if scheme == 'https'
-      j2 "deploy/app/vhost-ssl.conf.j2", "deploy/app/vhost.conf", **vhost_vars
-      run_docker_build "local/helloworld:#{version}",
-        :dockerfile => "deploy/app/vhost-ssl.dockerfile",
-        :build_args => {:version => version}
-    else
-      j2 "deploy/app/vhost.conf.j2", "deploy/app/vhost.conf", **vhost_vars
-      run_docker_build "local/helloworld:#{version}",
-        :dockerfile => "deploy/app/vhost.dockerfile",
-        :build_args => {:version => version}
-    end
+    j2 "deploy/app/base.dockerfile.j2", "deploy/app/base.dockerfile",
+      :version => version
+    j2 "deploy/app/vhost.conf.j2", "deploy/app/vhost.conf", **vhost_vars
+    j2 "deploy/app/vhost-ssl.conf.j2", "deploy/app/vhost-ssl.conf", **vhost_vars
+    j2 "deploy/app/server.dockerfile.j2", "deploy/app/server.dockerfile",
+      :version => version,
+      :server_name => server_name,
+      :https => (scheme == 'https')
+    # Build docker images
+    run_docker_build "local/helloworld:#{version}",
+      :dockerfile => "deploy/app/base.dockerfile"
+    run_docker_build "local/helloworld-server:#{version}",
+      :dockerfile => "deploy/app/server.dockerfile"
   end
 
   ## Display info
@@ -145,7 +147,7 @@ Vagrant.configure(2) do |config|
   
   config.vm.define "app" do |container|
     container.vm.provider "docker" do |p|
-      p.image = "local/helloworld:#{version}"
+      p.image = "local/helloworld-server:#{version}"
       p.name = "helloworld"
       p.env = {
          'SERVER_NAME' => server_name

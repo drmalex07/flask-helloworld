@@ -3,8 +3,8 @@
 FROM local/httpd:2.4-mod_wsgi
 
 ARG version
-
 ARG server_name=helloworld.internal
+
 ENV SERVER_NAME=${server_name}
 
 # Note: The config.ini expects a webserver-writable data directory at
@@ -17,6 +17,9 @@ ENV CONFIG_FILE=${HELLOWORLD_CONFIG_FILE}
 RUN mkdir -p /etc/opt/helloworld /var/opt/helloworld
 ADD dist/helloworld-${HELLOWORLD_VERSION}.tar.gz /opt/
 RUN ln -s /opt/helloworld-${HELLOWORLD_VERSION} /opt/helloworld
+
+ADD deploy/app/pip.conf /etc/pip.conf
+ENV PIP_CONFIG_FILE=/etc/pip.conf
 
 WORKDIR /opt/helloworld
 RUN pip install -r requirements.txt && python setup.py install

@@ -2,6 +2,13 @@
 
 ---
  
+ pip:
+  
+   # If a local development PyPi server is used (e.g. devpi), take care to
+   # install needed certificates also (under deploy/app/ca-certificates)!
+   
+   #index_url: ~
+   index_url: https://devpi.localdomain/root/pypi
  
  containers:
 
