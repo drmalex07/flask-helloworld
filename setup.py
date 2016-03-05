@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='helloworld',
-    version='0.1',
+    version=open('VERSION').read(),
     description='Hello World',
     url='http://github.com/drmalex07/helloworld',
     author='Michail Alexakis',
@@ -14,16 +14,7 @@ setup(
             'templates/*.html', 'templates/user/*.html'],
     },
     install_requires=[
-        'jinja2',
-        'flask',
-        'beaker',
-        'paste',
-        'pastedeploy',
-        'pastescript',
-        'repoze.who<1.1',
-        'repoze.who-friendlyform',
-        'webtest',
-        'sqlalchemy'
+        # Moved to requirements.txt
     ],
     setup_requires=[
     ],

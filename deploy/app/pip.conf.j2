@@ -1,0 +1,9 @@
+# vim: set syntax=dosini:
+
+[global]
+
+{% if index_url -%}
+index-url = {{index_url}}
+# Trust the system's CA certificates
+cert = /etc/ssl/certs/ca-certificates.crt
+{% endif %}

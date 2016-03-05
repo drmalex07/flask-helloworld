@@ -1,0 +1,12 @@
+data
+!data/main.db
+
+build
+env
+
+.git
+
+**/README.md
+**/.gitignore
+**/*.pyc
+*.egg-info

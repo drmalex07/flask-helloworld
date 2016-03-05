@@ -1,0 +1,38 @@
+# vim: set syntax=dockerfile: 
+
+FROM local/helloworld:{{version}}
+
+ENV SERVER_NAME={{server_name}}
+
+RUN apt-get update && apt-get install -y apache2 libapache2-mod-wsgi
+
+ENV APACHE_RUN_USER=www-data
+ENV APACHE_RUN_GROUP=www-data
+ENV APACHE_PID_FILE=/var/run/apache2/apache2.pid
+ENV APACHE_RUN_DIR=/var/run/apache2
+ENV APACHE_LOCK_DIR=/var/lock/apache2
+ENV APACHE_LOG_DIR=/var/log/apache2
+
+CMD ["/usr/sbin/apache2", "-DFOREGROUND", "-kstart"]
+
+ADD deploy/app/vhost.conf /etc/apache2/sites-available/helloworld.conf
+RUN a2ensite helloworld
+
+EXPOSE 80
+
+{% if https -%}
+ADD deploy/app/vhost-ssl.conf /etc/apache2/sites-available/helloworld-ssl.conf
+RUN a2enmod ssl
+RUN a2ensite helloworld-ssl
+
+ENV SERVER_CERTIFICATE_FILE=/etc/opt/helloworld/server.crt
+ENV SERVER_KEY_FILE=/etc/opt/helloworld/server.key
+ADD deploy/app/server.key /etc/opt/helloworld/
+RUN chmod 0400 /etc/opt/helloworld/server.key
+ADD deploy/app/server.crt /etc/opt/helloworld/
+
+EXPOSE 443
+{%- endif %} {# https #}
+
+VOLUME /var/log/apache2
+VOLUME /run

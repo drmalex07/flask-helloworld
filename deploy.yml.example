@@ -1,0 +1,37 @@
+# vim: set syntax=yaml:
+
+---
+ 
+ pip:
+  
+   # If a local development PyPi server is used (e.g. devpi), take care to
+   # install needed certificates also (under deploy/app/ca-certificates)!
+   
+   #index_url: ~
+   index_url: https://devpi.localdomain/root/pypi
+ 
+ containers:
+
+   database:
+
+     #file: 'data/main.db'
+     file: ~
+
+   app:
+
+     name: 'helloworld'
+
+     server_name: 'helloworld.internal'
+
+     address: '127.0.100.3'
+
+     https: no
+ 
+     forwarded_ports:
+     - '80:80'
+     - '443:443'
+
+     wsgi:
+       num_processes: 4
+       num_threads: 8
+ 

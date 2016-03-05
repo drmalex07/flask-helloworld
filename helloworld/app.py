@@ -22,7 +22,7 @@ def make_app(global_config, **app_config):
 
     @app.context_processor
     def setup_template_variables():
-        return dict(user=get_authenticated_user(), baz='99')
+        return dict(user=get_authenticated_user(), foo=session.get('foo'), baz='99')
     
     # Setup application routes
 

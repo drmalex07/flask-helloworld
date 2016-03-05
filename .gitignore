@@ -1,9 +1,13 @@
 *.pyc
 *.egg-info
 *.ini
+.vagrant
+
 htpasswd
 data
 
 env
 dist
 build
+
+deploy.yml

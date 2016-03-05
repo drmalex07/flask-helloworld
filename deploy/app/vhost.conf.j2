@@ -1,0 +1,21 @@
+# vim: set syntax=apache:
+
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    ServerName ${SERVER_NAME}
+
+    DocumentRoot /var/www/html
+
+    <Directory /opt/helloworld/>
+        Require all granted
+    </Directory>
+
+    WSGIPassAuthorization On
+    WSGIDaemonProcess "{{name}}" processes={{num_processes| default(1)}} threads={{num_threads|default(1)}}
+    WSGIProcessGroup "{{name}}"
+    WSGIScriptAlias "/" /opt/helloworld/wsgi.py
+
+    LogLevel info
+    ErrorLog "${APACHE_LOG_DIR}/error-{{name}}.log"
+    CustomLog "${APACHE_LOG_DIR}/access-{{name}}.log" combined
+</VirtualHost>
